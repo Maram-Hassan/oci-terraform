@@ -48,6 +48,7 @@ resource "oci_core_network_security_group_security_rule" "allow_http" {
   direction                 = "INGRESS"
   protocol                  = "6" # TCP
   source_type               = "0" # CIDR
+  stateless                 = true  
   tcp_options {
     destination_port_range {
       min = 80
@@ -62,6 +63,7 @@ resource "oci_core_network_security_group_security_rule" "allow_https" {
   direction                 = "INGRESS"
   protocol                  = "6" # TCP
   source_type               = "0" # CIDR
+  stateless                 = true 
   tcp_options {
     destination_port_range {
       min = 443
@@ -90,6 +92,7 @@ resource "oci_core_network_security_group_security_rule" "allow_http_instance" {
   direction                 = "INGRESS"
   protocol                  = "6" # TCP
   source_type               = "0" # CIDR
+  stateless                 = true 
   tcp_options {
     destination_port_range {
       min = 80
@@ -104,6 +107,7 @@ resource "oci_core_network_security_group_security_rule" "allow_https_instance" 
   direction                 = "INGRESS"
   protocol                  = "6" # TCP
   source_type               = "0" # CIDR
+    stateless                 = true 
   tcp_options {
     destination_port_range {
       min = 443
@@ -118,6 +122,7 @@ resource "oci_core_network_security_group_security_rule" "allow_ssh_instance" {
   direction                 = "INGRESS"
   protocol                  = "6" # TCP
   source_type               = "0" # CIDR
+    stateless                 = true 
   tcp_options {
     destination_port_range {
       min = 22
