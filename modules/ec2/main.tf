@@ -21,5 +21,5 @@ resource "oci_compute_instance" "ec2_instance" {
   }
 }
 output "instance_id" {
-  value = oci_core_instance.ec2_instance.id
+  value = oci_compute_instance.ec2_instance.id
 }

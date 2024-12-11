@@ -8,7 +8,7 @@ resource "oci_core_internet_gateway" "internet_gateway" {
   compartment_id = var.compartment_id
   vcn_id         = oci_core_virtual_network.vpc.id
   display_name   = var.igw_name
-  is_enabled     = true
+  enabled     = true
 }
 
 resource "oci_core_route_table" "public_route_table" {
@@ -86,7 +86,6 @@ resource "oci_core_network_security_group" "security_group_instance" {
 }
 
 
-# Security group rules for Load Balancer
 resource "oci_core_network_security_group_security_rule" "allow_http_instance" {
   network_security_group_id = oci_core_network_security_group.security_group.id
   direction                 = "INGRESS"
@@ -99,7 +98,7 @@ resource "oci_core_network_security_group_security_rule" "allow_http_instance" {
       max = 80
     }
   }
-  source = var.lb_id
+  source = oci_core_network_security_group.security_group.id
 }
 
 resource "oci_core_network_security_group_security_rule" "allow_https_instance" {
@@ -114,7 +113,7 @@ resource "oci_core_network_security_group_security_rule" "allow_https_instance" 
       max = 443
     }
   }
-  source = var.lb_id
+  source =  oci_core_network_security_group.security_group.id
 }
 
 resource "oci_core_network_security_group_security_rule" "allow_ssh_instance" {
@@ -129,8 +128,8 @@ resource "oci_core_network_security_group_security_rule" "allow_ssh_instance" {
       max = 22
     }
   }
-  source = var.lb_id
+  source =  oci_core_network_security_group.security_group.id
 }
 output "sg_id_instance" {
-  value = oci_core_network_security_group.security_group.id
+  value = oci_core_network_security_group.security_group_instance.id
 }
