@@ -3,12 +3,10 @@ resource "oci_compute_instance" "ec2_instance" {
   availability_domain = var.availability_domain
   shape          = var.shape
   display_name   = var.ec2-name
-  subnet_id      = var.public_subnet_id
-  network_security_group_ids = [var.sg_sg_id_instanceid]
+  subnet_id      = var.private_subnet_id
 
   create_vnic_details {
-    subnet_id = var.public_subnet_id
-    assign_public_ip = true
+    subnet_id = var.private_subnet_id
   }
 
   metadata = {

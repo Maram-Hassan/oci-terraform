@@ -10,7 +10,12 @@ resource "oci_core_internet_gateway" "internet_gateway" {
   display_name   = var.igw_name
   enabled     = true
 }
-
+resource "oci_core_nat_gateway" "my_nat" {
+  compartment_id = var.compartment_id
+  vcn_id         = oci_core_virtual_network.my_vcn.id
+  display_name   = "My NAT Gateway"
+  route_table_id = oci_core_route_table.private_route_table.id
+}
 resource "oci_core_route_table" "public_route_table" {
   compartment_id = var.compartment_id
   vcn_id         = oci_core_virtual_network.vpc.id
@@ -19,6 +24,15 @@ resource "oci_core_route_table" "public_route_table" {
   route_rules {
     destination = "0.0.0.0/0"
     network_entity_id = oci_core_internet_gateway.internet_gateway.id
+  }
+}
+resource "oci_core_route_table" "private_route_table" {
+  compartment_id = var.compartment_id
+  vcn_id         = oci_core_virtual_network.vpc.id
+  display_name   = var.private_route_table_name
+  route_rules {
+    destination = "0.0.0.0/0"
+    network_entity_id = oci_core_nat_gateway.my_nat.id
   }
 }
 
@@ -34,102 +48,69 @@ output "public_route_table_id" {
   value = oci_core_route_table.public_route_table.id
 }
 
-
-resource "oci_core_network_security_group" "security_group" {
-  compartment_id = var.compartment_id
-  vcn_id         = oci_virtual_network_vcn.vpc.id
-  display_name   = var.sg_name
+output "private_route_table_id" {
+  value = oci_core_route_table.private_route_table.id
 }
 
+resource "oci_core_security_list" "lb_security_list" {
+  compartment_id = var.compartment_id
+  display_name   = "lb-security-list"
 
-# Security group rules for Load Balancer
-resource "oci_core_network_security_group_security_rule" "allow_http" {
-  network_security_group_id = oci_core_network_security_group.security_group.id
-  direction                 = "INGRESS"
-  protocol                  = "6" # TCP
-  source_type               = "0" # CIDR
-  stateless                 = true  
-  tcp_options {
-    destination_port_range {
+  ingress_security_rules {
+    protocol = "6" # TCP
+    source   = "0.0.0.0/0"
+
+    tcp_options {
       min = 80
       max = 80
     }
   }
-  source = "0.0.0.0/0"
-}
 
-resource "oci_core_network_security_group_security_rule" "allow_https" {
-  network_security_group_id = oci_core_network_security_group.security_group.id
-  direction                 = "INGRESS"
-  protocol                  = "6" # TCP
-  source_type               = "0" # CIDR
-  stateless                 = true 
-  tcp_options {
-    destination_port_range {
+  ingress_security_rules {
+    protocol = "6" # TCP
+    source   = "0.0.0.0/0"
+
+    tcp_options {
       min = 443
       max = 443
     }
   }
-  source = "0.0.0.0/0"
-}
 
+  egress_security_rules {
+    protocol = "6" # TCP
+    destination = oci_core_security_list.private_ec2_security_list.cidr_block
 
-output "sg_id" {
-  value = oci_core_network_security_group.security_group.id
-}
-
-
-resource "oci_core_network_security_group" "security_group_instance" {
-  compartment_id = var.compartment_id
-  vcn_id         = oci_virtual_network_vcn.vpc.id
-  display_name   = var.sg_name
-}
-
-
-resource "oci_core_network_security_group_security_rule" "allow_http_instance" {
-  network_security_group_id = oci_core_network_security_group.security_group.id
-  direction                 = "INGRESS"
-  protocol                  = "6" # TCP
-  source_type               = "0" # CIDR
-  stateless                 = true 
-  tcp_options {
-    destination_port_range {
+    tcp_options {
       min = 80
-      max = 80
-    }
-  }
-  source = oci_core_network_security_group.security_group.id
-}
-
-resource "oci_core_network_security_group_security_rule" "allow_https_instance" {
-  network_security_group_id = oci_core_network_security_group.security_group.id
-  direction                 = "INGRESS"
-  protocol                  = "6" # TCP
-  source_type               = "0" # CIDR
-    stateless                 = true 
-  tcp_options {
-    destination_port_range {
-      min = 443
       max = 443
     }
   }
-  source =  oci_core_network_security_group.security_group.id
 }
 
-resource "oci_core_network_security_group_security_rule" "allow_ssh_instance" {
-  network_security_group_id = oci_core_network_security_group.security_group.id
-  direction                 = "INGRESS"
-  protocol                  = "6" # TCP
-  source_type               = "0" # CIDR
-    stateless                 = true 
-  tcp_options {
-    destination_port_range {
-      min = 22
-      max = 22
+resource "oci_core_security_list" "private_ec2_security_list" {
+  compartment_id =var.compartment_id
+  display_name   = "private-ec2-security-list"
+
+  ingress_security_rules {
+    protocol = "6" # TCP
+    source   = oci_core_security_list.lb_security_list.cidr_block
+
+    tcp_options {
+      min = 80
+      max = 443
     }
   }
-  source =  oci_core_network_security_group.security_group.id
+
+  egress_security_rules {
+    protocol = "-1" # All Protocols
+    destination = "0.0.0.0/0"
+  }
 }
-output "sg_id_instance" {
-  value = oci_core_network_security_group.security_group_instance.id
+
+output "lb_security_list_id" {
+  value = oci_core_security_list.lb_security_list.id
+}
+
+output "private_ec2_security_list_id" {
+  value = oci_core_security_list.private_ec2_security_list.id
 }

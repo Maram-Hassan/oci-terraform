@@ -40,3 +40,8 @@ variable "sg_id_instance" {
   description = "The OCID of the security group for the EC2 instance"
   type        = string
 }
+
+variable "private_subnet_id" {
+  description = "private subnet id"
+  type        = string
+}

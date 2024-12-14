@@ -4,8 +4,6 @@ resource "oci_load_balancer_load_balancer" "lb" {
   display_name             = "my-loadbalancer"
   shape                    = "100Mbps"
   subnet_ids               = [var.public_subnet_id]
-  network_security_group_ids = [var.sg_id]
-
 }
 
 # Create Backend Set

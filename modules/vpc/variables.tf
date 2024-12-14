@@ -18,6 +18,11 @@ variable "public_route_table_name" {
   type        = string
   default     = "public-route-table"
 }
+variable "private_route_table_name" {
+  description = "Name for the private_route_table"
+  type        = string
+  default     = "private-route-table"
+}
 
 variable "cidr_block" {
   description = "CIDR block for the VPC"
